@@ -30,16 +30,20 @@ To install ICE:
 
 - make sure to have R 3.4.0+ and that `gfortran` is installed
 - open R session
-- install devtools: 
-    ```{r, eval=FALSE}
-    install.packages('devtools')
-    ```
 - install ICE from github:
-
-    ```{r, eval=FALSE}
-    devtools::install_github(repo = 'https://github.com/point-h2020/point-evaluation-tools.git')
-    ```
-
+    + clone the source pacakge from GitHub repo `point-evaluation-tools`, using branch `ice`:
+    
+      `git clone git@github.com:point-h2020/point-evaluation-tools.git . -b ice`
+    + open an R session and install :
+        + devtools (if not installed alread): 
+        ```{r, eval=FALSE}
+        install.packages('devtools')
+        ```
+        + ice:
+        ```{r, eval=FALSE}
+        devtools::install()
+        ```
+        
 ## Configuration
 Scenarios attributes are provided in a YAML-based configuration file. The file is devided into `enviroments`, those are sections that define attributes for different purposes. enviorments in current ICE version include:
 
