@@ -203,9 +203,13 @@ ICE workflow is split into four distinct phases. To enable each phase, there is 
 ### Parsing
 First thing ICE would expect is the attributes of the network (and scenario) to be simulated. Remeber, those are descirbed in config.yml. ICE provides a wrapper function `ParseConfig` that creates configs enviroments providing all elements expeceted by ICE.
 
-```r
-gcfgs <- ParseConfig(config.file = 'tools/config.yml', config.active = 'INFO', config.env = 'default')
-scfgs <- ParseConfig(config.file = 'tools/config.yml', config.active = 'INFO', config.env = 'simulate')
+```{r, eval=FALSE}
+gcfgs <- ParseConfig(config.file = 'tools/config.yml',
+                     config.active = 'INFO',
+                     config.env = 'default')
+scfgs <- ParseConfig(config.file = 'tools/config.yml', 
+                     config.active = 'INFO', 
+                     config.env = 'simulate')
 ``` 
 Notice here that it is possible to have two different configurations enviroments, one for data generation and one for simulation. This brings us back to the flexibility mention above in allowing for simulation to happen over a subset of the generated data.
 ### Generation
