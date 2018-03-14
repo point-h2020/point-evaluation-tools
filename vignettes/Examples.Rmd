@@ -1,0 +1,77 @@
+---
+title: "Example Simulation with the ICN Evaluator (ICE)"
+author: "Mays AL-Naday"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+vignette: >
+  %\VignetteIndexEntry{Example Simulation with the ICN Evaluator (ICE)}
+  %\VignetteEngine{R.rsp::asis}
+  %\VignetteKeyword{PDF}
+  %\VignetteKeyword{HTML}
+  %\VignetteKeyword{vignette}
+  %\VignetteKeyword{package}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+Here I will show how ICE can be used to simulate the performance of *-over-ICN technology over the Abilien graph , imported from the Internet Topology Zoo dataset ([via](http://www.topology-zoo.org/dataset.html)). The Figure below shows the network topology.
+
+```{r, echo=FALSE, out.width = "300px", fig.align= 'center', fig.cap= "Abilient Topology (11 nodes, 28 edges)"}
+knitr::include_graphics("abilien.eps", dpi = 300)
+```
+
+## Configuration
+
+The specification of this scenario is provided in the configuration file `tools\config.yml`. The file specifies:
+
+- `2` origins to be selected by the `Pop` policy. 
+- two scales of surrogates: `[2, 4]` to be placed by the `Pop` policy. This results in creating two permutations to be tested within this scenario: `{(2 origins, 2 surrogates), (2 origins, 4 surrogates)}`. 
+- two scales of DNS: `[2,4]` to be placed by the `Pop` policy. This increases the number of permutations to be generated for the DNS-based network to four: `{(2 origins, 2 surrogates, 2 DNS), (2 origins, 4 surrogates, 2 DNS), (2 origins, 2 surrogates, 4 DNS), (2 origins, 4 surrogates, 4 DNS)}` 
+- Load on the network is set to `0.4` (i.e. `40%`)
+- number of random tests to be generated is set to `50`, that is each permutation of the above will have `50` psudo random selections of service points. However simulation tests have been set to `10 < 50`, as in you will simulate only for a subset of the genrated tests.
+
+## Run
+
+```{r, echo=TRUE, message=FALSE, tidy=TRUE, prompt=TRUE, cache=TRUE}
+require(doParallel, quietly = TRUE)
+require(foreach, quietly = TRUE)
+#' configure the logging level to 'INFO' for minimum print-outs 
+#' Parse the configuration file for data generation
+gcfgs <- ice::ParseConfig(config.file = '../tools/config.yml', config.env = 'default')
+#' Parse the configuration file for simulation
+scfgs <- ice::ParseConfig(config.file = '../tools/config.yml', config.env = 'simulate')
+#' verify input data is already generated and stored, 
+#' if not then generate and save the data.
+ice::GenSimData(cfgs = gcfgs)
+#' Simulate capacity requrirments for admitting input unicast traffic in ICN
+if('icn.uc' %in% scfgs$tcfg$v)  
+  ice::SimIcnUnicast(scfgs)
+#' Simulate capacity requrirments for admitting input multicast traffic in ICN
+if('icn.mc' %in% scfgs$tcfg$v)  
+  ice::SimIcnMulticast(scfgs)
+#' Simulate capacity requirments for admitting input traffic in IP
+if('ip' %in% scfgs$tcfg$v)  
+  ice::SimIp(scfgs)
+```
+
+## Process Simulation results
+Now that simulation is complete, raw results are stored and hence can be processed to generate summaries
+
+```{r, echo=TRUE, message=FALSE, prompt=TRUE}
+icn.cap <- ice::ProcIcnUnicastCapacity(cfgs = scfgs)
+suma <- Rmisc::summarySE(data = icn.cap, 
+                         measurevar = 'provisioned',
+                         groupvars = c('surrogates'))
+suma
+```
+
+## Summary
+The example above can be imported into a separate script file and run from terminal as an executable.

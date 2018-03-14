@@ -1,0 +1,39 @@
+default:                                                #' default simultation model containing essential definitions of all parameters necessary to complete a simulation round(s)
+  cores: 2                                              #' number of CPU cores to use in parallel foreach loops - it affects the running speed
+  dirs:                                                 #' directories to retrieve stored data/results or write new data/results
+    home: '../'                                          #' home (common path) for all other directories
+    store: 'data/'                                      #' store generated simulation data
+    result: 'data/results/'                             #' store raw simulation results
+  graph:
+    gdir: 'data-raw/zoo'                                #' pool of stored graphs, dirs['store'] + gdir = path for where to find the graphs
+    gset: [1]                                           #' index of the graph in the stored pool
+    augument: NULL                                      #' augument access networks attached to a core graph, NULL = no augumenetation, tree = tree access network
+  catalogue:                                            #' content/information catalogue
+    size: [1000]                                         #' catalogue size - i.e. number of items
+    v: [0.02,0.04]                                      #' pool of potential volumes of items, i.e. volume per item is selected (possibly randomly) from this pool
+    d: 'zipf'                                           #' popularity distribution of the catalogue items
+    d.param:                                            #' distribution configurations:
+      s: [0.85]                                         #' when d = zipf, this is zipf's exponent
+      ig: 0.0                                           #' fraction of the start of the distribution to be ignored, in zipf this is the top level part
+  origin:                                               #' Information providers - origins, i.e. store a copy of every item in the catalogue:
+    opt: [1]                                            #' selection policy, 1: higest 'closeness', 2: highest 'population', 3: 'swing' - new algorithm
+    k: [2]                                              #' number of origins in the network, permutations are generated for each k value. each value will be simulated independently from the other.
+    a: 0.1                                              #' minimum storage capacity of origins, in unit of GB. i.e. origins added capacity is multiples of a
+  surrogate:                                            #' Information providers - surrogates (or edge service points), i.e. limited storage capacity, only stores a local copy for subset of items.
+    a: 0.1                                              #' minimum storage capacity of surrogates in units of GB
+    k: [2,4]                                            #' number of surrogates in the network
+    opt: [1]                                            #' selection policy, 1: higest 'closeness', 2: highest 'population', 3: 'swing'
+  dns:                                                  #' DNS configruations:
+    k: [2,4]                                          #' number of LocalDNS (LDNS) nodes in the network
+    opt: [1]                                            #' selection policy, 1: higest 'closeness', 2: highest 'population', 3: 'swing'
+  permutation:
+    tests: 50                                           #' number of simulations or data permutations to simulate
+    load: [0.4,0.4,0.1]                                 #' either load as a ratio of population (i.e. x % of node population are active consumers) or as a pure number of requests. supporting number of requests option is not implmenented yet
+    v: []
+simulate:                                               #' customised model configurations, possibly different from the default, this can be used to choose which subset of configurations to model, while 'default' can be used to generate permutations only
+#  inherits: default                                    #' inhert default configurations for anything not customised below
+  permutation:
+    sim.tests: 10
+    L: [900,1800]                                       #' total period to be simulated in secs - This also represents the total length of each item in the catalogue.\ToDo: randomise the item length.
+    t: [0.1, 1.0]                                       #' catchment interval in seconds
+    v: ['ip', 'icn.uc']                                           #' which simulation functions to run, 'icn.uc', 'icn.mc','ip'

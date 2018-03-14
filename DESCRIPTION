@@ -1,0 +1,40 @@
+Package: ice
+Title: ICn Evaluator (ICE)
+Version: 0.0.0.9000
+Authors@R: person("Mays", "AL-Naday", email = "malnaday@gmail.com", role = c("aut", "cre"))
+Description: model and simulate native ICN and IP-over-ICN networks
+License: GPL-3 + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends:
+  doParallel,
+  parallel,
+  R (>= 3.4.0),
+  foreach
+Imports:
+  config,
+  deldir,
+  formatR,
+  graph,
+  igraph (>= 1.1.0),
+  logging,
+  matrixStats,
+  plyr,
+  poweRlaw,
+  RBGL,
+  reshape2,
+  Rmisc,
+  sos,
+  spatstat,
+  tinytex,
+  VGAM,
+  xml2
+Suggests: 
+    Rcpp,
+    ggplot2,
+    gridExtra,
+    optparse,
+    knitr,
+    rmarkdown
+RoxygenNote: 6.0.1
+VignetteBuilder: knitr
