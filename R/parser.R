@@ -28,6 +28,8 @@ ParseConfig <- function(config.file, config.active = 'default', config.env = 'de
   #set logging level
   Sys.setenv(R_CONFIG_ACTIVE = config.active)
   logging::loginfo('PAR: config enviroment: %s', config.env)
+  #' fine file
+  config.file <- system.file("config", config.file, package = "ice")
   #create configs enviroment
   cfgs <- new.env(parent = emptyenv())
   cfgs$cores <- ParseCores(config.file, config.env = config.env)

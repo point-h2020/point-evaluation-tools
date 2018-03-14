@@ -45,9 +45,9 @@ require(doParallel, quietly = TRUE)
 require(foreach, quietly = TRUE)
 #' configure the logging level to 'INFO' for minimum print-outs 
 #' Parse the configuration file for data generation
-gcfgs <- ice::ParseConfig(config.file = '../tools/config.yml', config.env = 'default')
+gcfgs <- ice::ParseConfig(config.file = 'config.yml', config.env = 'default')
 #' Parse the configuration file for simulation
-scfgs <- ice::ParseConfig(config.file = '../tools/config.yml', config.env = 'simulate')
+scfgs <- ice::ParseConfig(config.file = 'config.yml', config.env = 'simulate')
 #' verify input data is already generated and stored, 
 #' if not then generate and save the data.
 ice::GenSimData(cfgs = gcfgs)
