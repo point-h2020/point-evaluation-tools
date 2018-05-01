@@ -41,6 +41,7 @@ GenSimData <- function(cfgs, config.active = 'default')
     users <- GetActiveUsers(.gun = gund, .cfgs = cfgs$tcfg, .path = users.file)
     for(i in 1:length(cc.paths))
     {
+
       P <- GetPublishersPermutations(cc = cc[[i]], gund = gund, cfgs = cfgs)
       #' check if subscribers stored, if not generate and store
       s.file <- file.path(cc[[i]]$path, "S", "-g_", gund$g.name, cfgs$tcfg$expr, ".RData", fsep = "")
@@ -96,6 +97,7 @@ GenPubSubState <- function(.P, .cc, .S, .scale, .tests, .path)
 GenCataloguePermutation <- function(.N, .d, .d.param, .v, .path)
 {
   cc <- list()
+  dir.create(.path, showWarnings = TRUE)
   logging::logdebug('GEN: content catalogue in path: %s', .path)
   cc <- Catalogue(N = .N, d = .d, d.param = .d.param, v = .v)
   cc$N <- .N

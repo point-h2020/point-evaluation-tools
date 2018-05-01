@@ -93,7 +93,7 @@ RouteIcnMulticastOneDemandDijkstra <- function(iL, D, R, t, L)
   #' update multicast load on each tree
   for(t in names(o$trees))
   {
-    o$added[[t]] <- HelperUpdateTreeLoadOnAM(R[[t]][names(o$trees[[t]])], (n * iL$v)[names(o$trees[[t]])])
+    o$added[[t]] <- HelperUpdateTreeLoadOnAm(R[[t]][names(o$trees[[t]])], (n * iL$v)[names(o$trees[[t]])])
   }
   o$total <- sum(i$s * iL$v)
   o
@@ -124,7 +124,7 @@ RouteIcnMulticastDijkstra <- function(iL, g, t, L)
     n <- trunc((L + L/s)/(t + L/s))
     for(r in names(o$trees[[i$i]]))
     {
-      o$added[[i$i]][[r]] <- HelperUpdateTreeLoadOnAM(g$R[[r]][names(o$trees[[i$i]][[r]])], (n * i$v)[names(o$trees[[i$i]][[r]])])
+      o$added[[i$i]][[r]] <- HelperUpdateTreeLoadOnAm(g$R[[r]][names(o$trees[[i$i]][[r]])], (n * i$v)[names(o$trees[[i$i]][[r]])])
     }
     o$total[i$i] <- sum(i$s * i$v)
   }

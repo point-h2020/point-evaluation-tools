@@ -19,6 +19,8 @@
 #' @description Load list of zoo graphs, if stored. otherwise, read, store then load
 #'
 #' @author Mays AL-Naday
+#'
+#' @export
 #' @param read.path path to read graph objects in either gml or graphml format
 #' @param write.path path to write the R list of all read graphs:node_population object
 #' @param extension graph format (zoo provides either 'gml' or 'graphml')
@@ -40,6 +42,8 @@ GraphLoadZoo <- function(read.path, write.path, ext = "graphml")
 #' @description Import Zoo topology graphs and extrapolate node population of each node in every graph, based on the WorldPopulation
 #'
 #' @author Mays AL-Naday
+#'
+#' @export
 #' @param read.path path to read graph objects in either gml or graphml format
 #' @param write.path path to write the R list of all read graphs:node_population object
 #' @param extension graph format (zoo provides either 'gml' or 'graphml')
@@ -79,6 +83,8 @@ GraphImportZoo <- function(read.path, write.path,  ext = "graphml")
 #' \code{m} the max number of users to be associated with any leaf node.
 #'
 #' @author Mays AL-Naday
+#'
+#' @export
 #' @param read.path path to read list of zoo graph object(s) of core node(s). This can be the imported zoo graphs using GraphImportZoo
 #' @param write.path path to write the R list of all augumented graphs. filename is azoo.RData
 #' @param augument.params \code{k} the tree-arity parameter defining the number of childer per parent. \code{m} maximum number of users that can be handled by a leaf node
@@ -99,6 +105,8 @@ GraphAugumentTreeAccessZoo <- function(read.path , write.path, augument.params =
 #' convert igraph to graphNEL
 #'
 #' @author Mays AL-Naday
+#'
+#' @export
 #' @param g igraph object
 #' @param directed boolean \code{0} undirected, \code{1} directed graph
 #' @return graphNEL object
@@ -116,7 +124,9 @@ IgraphToGraphNEL <- function(g, directed = 1) {
 #' Convert a graphNEL to an edge matrix
 #'
 #' @description converts graphNEL to an edge matrix in the format of \code{{from, to}}
-#' @param g: a graphNEL object
+#'
+#' @export
+#' @param g a graphNEL object
 #' @return Edge Matrix
 GraphToEdgeMatrix <- function(g) {
   em <- t(graph::edgeMatrix(g))
@@ -126,6 +136,7 @@ GraphToEdgeMatrix <- function(g) {
 #' assing popularity to graph nodes
 #' @description assign popularity metirc to each node based on a node property, e.g. closeness of node
 #'
+#' @export
 #' @param g graph object of type igraph
 #' @return dataframe of (node, popularity)
 NodePopularityCloseness <- function(g) {
@@ -138,6 +149,7 @@ NodePopularityCloseness <- function(g) {
 #' Set capacity on graph links
 #' @description Assign randomly generated capacity values to the edge matrix of a graph. Notice the matrix must have a column \code{capacity} already
 #'
+#' @export
 #' @param eM edge matrix, possibly generated using GraphToEdgeMatrix(g), including a column with column name \code{capacity}
 #' @param min minimum capacity value on any edge
 #' @param max maximum capacity on any edge
@@ -150,6 +162,7 @@ SetCapacityValueToEdgeMatrix <- function(eM, min = 5, max = 10) {
 }
 #' Extend the edgeMatrix of a graph with a set of edge attributes
 #'
+#' @export
 #' @param eM edge matrix, possibly generated using GraphToEdgeMatrix(g)
 #' @param attrs a character vector of the attributes to be added to the edge matrix (or the graph in that sense)
 #' @return updated edge matrix including added columns, one for each of the attributes of \code{attrs}
@@ -163,6 +176,7 @@ AssignAttrsToEdgeMatrix <- function(eM, attrs=c("capacity", "weight", "pheromon"
 }
 #' Convert graph to edge matrix with edge attributes
 #'
+#' @export
 #' @param g network graph
 #' @param attrs vector of strings, listing the edge attributies
 #' @return edge matrix with added columns for edge attributes
@@ -174,6 +188,7 @@ GraphToEdgeMatrixWithAttributes <- function(g, attrs=c("capacity", "load", "weig
 }
 #' Set the edge attribute of graph to value
 #'
+#' @export
 #' @param eM edge matrix containing graph attribute to be set
 #' @param val value to set the edge attribute, accepts a vector but cannot be NULL, NA or NaN
 #' @return Edge matrix with attribue set to val
@@ -188,6 +203,7 @@ GraphSetEdgeAttr <- function(eM, val = 1.0, attr) {
 }
 #' Convert graph to N x N adjacency matrix where nxm cell gives the load on edge n->m
 #'
+#' @export
 #' @param g network graph
 #' @param attrs vector of strings, listing the edge attributies
 #' @return edge matrix with added columns for edge attributes
@@ -197,6 +213,7 @@ GraphToAdjMatrix <- function(g)
 }
 #' Set the edge load in a NxN adjacency matrix
 #'
+#' @export
 #' @param eM adjaceny matrix
 #' @param val value to set the edge load, accepts a vector but cannot be NULL, NA or NaN
 #' @return adjacency matrix with load set to val
@@ -234,6 +251,7 @@ JarGraphGetPopulationPerServiceArea <- function(topology, WorldPopulation) {
 }
 #' Augument Access network in the form of a k-ary tree, with {k,h} parameters.
 #'
+#' @export
 #' @param gu \code{g} graph object of the core network, to be augumented. \code{u} a numeric vector of the number of active users per each core node.
 #' @param k tree-arity, i.e. the maximum number of children each node can have
 #' @param m numeric value defining the number of users per access node, u/m gives the total number of leafs
@@ -266,6 +284,7 @@ GraphAugumentTreeAccessNetwork <- function(gu, k, m)
 }
 #' Create a k-ary tree access network for a set of active users
 #'
+#' @export
 #' @param n the number of nodes in the graph. used as a starting index for numbering the nodes in the access network to avoid node id clash with the core graph
 #' @param v a (name,value) number where name is the node id of a core node, and value is the number of active users associated with the node
 #' @param c design parameter of the maximum number of users that can be served by an access (leaf) node
@@ -327,6 +346,7 @@ GraphCreateTreeNetwork <- function(n, v, c, k)
 #' Augument the graph to add access node to each node with capacity between the original node and the access node = total edge capacity of the original node.
 #' This means the access node cannot push to the origin node any more traffic that the sum of capacities on all of its edges.
 #'
+#' @export
 #' @param g core network graph
 #' @param eM core edge Matrix of the graph with capacities
 #' @return augumented graph including core + access nodes

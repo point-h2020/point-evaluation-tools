@@ -32,8 +32,8 @@ ParseConfig <- function(config.file, config.active = 'default', config.env = 'de
   config.file <- system.file("config", config.file, package = "ice")
   #create configs enviroment
   cfgs <- new.env(parent = emptyenv())
-  cfgs$cores <- ParseCores(config.file, config.env = config.env)
-  cfgs$paths <- ParsePaths(config.file, config.env = config.env)
+  cfgs$cores <- ParseCores(config.file = config.file, config.env = config.env)
+  cfgs$paths <- ParsePaths(config.file = config.file, config.env = config.env)
   #parse the various configurations from the yml config file
   cfgs$icfg <- ParseCatalogue(config.file = config.file, config.env = config.env)
   logging::logdebug('PAR: Catalogue: N:%s, d:%s, dparam:%s, v:%s ', cfgs$icfg$N, cfgs$icfg$d, cfgs$icfg$d.param, cfgs$icfg$v)
@@ -106,13 +106,21 @@ ParsePaths <- function(config.file, config.env = 'default')
 }
 #' parse modelling permutations from a YAML config file
 #'
+#' @export
+#' @param ui.input alternative user interface based input object - coming from shiny primarly
 #' @param config.file full path to a .yml config file containing modelling permutations
 #' @param config.env configuration enviroment, default to 'default'
 #' @return modelling permutations
-#' @export
-ParsePermutation <- function(config.file, config.env = 'default')
+ParsePermutation <- function(ui.input, config.file, config.env = 'default')
 {
-  perms <- config::get(value = 'permutation', config = config.env, file = config.file)
+  if(missing(ui.input))
+    perms <- config::get(value = 'permutation', config = config.env, file = config.file)
+  else
+    perms <- list(tests = ui.input$tests,
+                  sim.tests = ui.input$sim.tests,
+                  load = c('lb' = ui.input$load[1], 'ub' = ui.input$load[2], 'st' = 0.1),
+                  t = as.numeric(ui.input$t),
+                  L = as.numeric(ui.input$L))
   params <- names(perms)
   if(!('load' %in% params))
     logging::logwarn('PAR: Missing load parameter')
@@ -138,15 +146,23 @@ ParseGraph <- function(config.file, config.env = 'default')
 #' @note this function is similar to \code{ParseItems}, except the latte is used to parse the catalogue section under the alternative name \code{items}
 #'
 #' @param config.file .yml configuration file containing a section named items with essential elements including: {size = set size, a = exponent of distribution, iv = item volume or volumes to choose from, ig = item ignorance (i.e. fraction of popularity distribution to be ignored or assumed cached)}
+#' @param ui.input alternative user interface based input object - coming from shiny primarly
 #' @param config.env configuration enviroment, default to \code{default}
 #' @return design parameters of the content catalogue
 #' @export
-ParseCatalogue <- function(config.file, config.env = 'default')
+ParseCatalogue <- function(config.file, ui.input, config.env = 'default')
 {
-  icfg <- config::get(value = 'catalogue', config = config.env, file = config.file)
+  if(missing(ui.input)) {
+    icfg <- config::get(value = 'catalogue', config = config.env, file = config.file)
+    icfg$N <- icfg$size
+    icfg$size <- NULL
+  }
+  else
+  {
+    icfg <- list(N = ui.input$size, d = ui.input$d, v = seq(ui.input$v[1], ui.input$v[2], by = 0.02))
+    icfg$d.param <- list(s = ui.input$s, ig = ui.input$ig)
+  }
   #rename the size parameter to 'N'
-  icfg$N <- icfg$size
-  icfg$size <- NULL
   #convert the distribution parameters into a dataframe of combinations, then break it down to list elements
   dp <- expand.grid(icfg$d.param)
   dp.names <- colnames(dp)  #get the names of the distribution params
@@ -165,15 +181,20 @@ ParseCatalogue <- function(config.file, config.env = 'default')
 #' parse modeling origins from a YAML config file
 #' @description This is grouped under the \code{origins} list
 #'
+#' @export
+#' @param ui.input alternative user interface based input object - coming from shiny primarly
 #' @param config.file .yml configuration file containing a section named origins
 #' @param config.env configuration enviroment, default to 'default'
 #' @return dimensioning parameters of origins in the network - this equivelent to dimensioning CDN entry points
-#' @export
-ParseOrigins <- function(config.file, config.env = 'default')
+ParseOrigins <- function(ui.input, config.file, config.env = 'default')
 {
-  ocfg <- config::get(value = 'origin', config = config.env, file = config.file)
+  if(missing(ui.input))
+    ocfg <- config::get(value = 'origin', config = config.env, file = config.file)
+  else {
+    ocfg <- list(opt = ui.input$oopt, k = seq(ui.input$ok[1], ui.input$ok[2], by=2), a = 0.1)
+  }
   combo <- expand.grid(ocfg)
-  ocfg$expr <- apply(combo, 1, function(x){paste0(names(x), "_", x, collapse = "-")})
+  ocfg$expr <- apply(combo, 1, function(x){paste0(names(x), "_", as.numeric(x), collapse = "-")})
   combo$expr <- ocfg$expr
   ocfg$combo <- combo
   ocfg
@@ -181,15 +202,19 @@ ParseOrigins <- function(config.file, config.env = 'default')
 #' parse modeling surrogates from a YAML config file
 #' @description This is grouped under the \code{surrogate} list
 #'
+#' @export
+#' @param ui.input alternative user interface based input object - coming from shiny primarly
 #' @param config.file .yml configuration file containing a section named surrogate
 #' @param config.env configuration enviroment, default to 'default'
 #' @return dimensioning parameters of surrogates in the network - this equivelent to dimensioning CDN edge servers
-#' @export
-ParseSurrogates <- function(config.file, config.env = 'default')
+ParseSurrogates <- function(ui.input, config.file, config.env = 'default')
 {
-  ecfg <- config::get(value = 'surrogate', config = config.env, file = config.file)
+  if(missing(ui.input))
+    ecfg <- config::get(value = 'surrogate', config = config.env, file = config.file)
+  else
+    ecfg <- list(opt = ui.input$eopt, k = seq.int(ui.input$ek[1], ui.input$ek[2], by = 2), a = 0.1)
   combo <- expand.grid(ecfg)
-  ecfg$expr <- apply(combo, 1, function(x){paste0(names(x), "_", x, collapse = "-")})
+  ecfg$expr <- apply(combo, 1, function(x){paste0(names(x), "_", as.numeric(x), collapse = "-")})
   combo$expr <- ecfg$expr
   ecfg$combo <- combo
   ecfg
@@ -197,15 +222,19 @@ ParseSurrogates <- function(config.file, config.env = 'default')
 #' parse modeling DNS from a YAML config file
 #' @description This is grouped under the \code{dns} list
 #'
+#' @export
+#' @param ui.input alternative user interface based input object - coming from shiny primarly
 #' @param config.file .yml configuration file containing a section named dns
 #' @param config.env configuration enviroment, default to 'default'
 #' @return dimensioning parameters of DNS in the network - this equivelent to dimensioning CDN local DNS points
-#' @export
-ParseDns <- function(config.file, config.env = 'default')
+ParseDns <- function(ui.input, config.file, config.env = 'default')
 {
-  dcfg <- config::get(value = 'dns', config = config.env, file = config.file)
+  if(missing(ui.input))
+    dcfg <- config::get(value = 'dns', config = config.env, file = config.file)
+  else
+    dcfg <- list(opt = ui.input$dopt, k = seq(ui.input$dk[1], ui.input$dk[2], by = 2))
   combo <- expand.grid(dcfg)
-  dcfg$expr <- apply(combo, 1, function(x){paste0(names(x), "_", x, collapse = "-")})
+  dcfg$expr <- apply(combo, 1, function(x){paste0(names(x), "_", as.numeric(x), collapse = "-")})
   combo$expr <- dcfg$expr
   dcfg$combo <- combo
   dcfg

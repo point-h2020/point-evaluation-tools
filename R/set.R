@@ -172,6 +172,7 @@ SetItemReflector <- function(i, R)
 
 #' Substitue numeric value of column with a human-readable name
 #'
+#' @export
 #' @param df dataframe of the cloumn
 #' @param cols column names where the replacement will be
 #' @param ov old value, i.e. existing value. the position of a value here MUST match the position of the name in the nv param (next)

@@ -200,6 +200,39 @@ GetPublishersPermutations <- function(cc, gund, cfgs)
   logging::loginfo('GET: Publishers complete')
   P
 }
+#' Get single origin
+#' @description Get one set of origins for single configurations combination
+#'
+#' @export
+#' @param filename origins filename
+#' @param cfgs list of configuration params, each element has one value
+GetOrigin <- function(filename, cfgs)
+{
+  if(file.access(filename, mode = 4) < 0)
+  {
+    logging::logdebug('GET: missing origin of %s, generate...', filename)
+    GenOriginsPermutations(.opt = cfgs$oopt, .k = cfgs$ok, .a = cfgs$oa, .cc = cfgs$cc, .gund = cfgs$g, .tests = cfgs$tcfg$tests, .path = filename)
+  }
+  load(filename)
+  O
+}
+#' Get single surrogate
+#' @description Get one set of surrogates for single configurations combination
+#'
+#' @export
+#' @param filename origins filename
+#' @param cfgs list of configuration params, each element has one value
+GetSurrogate <- function(filename, cfgs)
+{
+  if(file.access(filename, mode = 4) < 0)
+  {
+    logging::logdebug('GET: missing origin of %s, generate...', filename)
+    GenSurrogatePermutations(.opt = cfgs$eopt, .k = cfgs$ek, .a = cfgs$ea, .cc = cfgs$cc, .gund = cfgs$g, .e =  cfgs$e, .tests = cfgs$tcfg$tests, .path = filename)
+  }
+  load(filename)
+  E
+}
+
 #' Get subscribers permutations
 #' @description Get subscribers permutations if stored, if not then generate and store
 #'
@@ -363,6 +396,18 @@ GetGraph <- function(cfg, paths)
   gs <- mapply(function(x, y) {z <- strsplit(x[1], '/', fixed = TRUE)[[1]]; y$g.name <- z[length(z)]; y}, gs.files, gs, SIMPLIFY = FALSE)
   gs
 }
+#' Get file names from list of full filename including paths
+#'
+#' @export
+#' @param paths character list of full path to files, including filenames
+#' @return graph names
+GetFileName <- function(paths)
+{
+  files <- strsplit(paths, ".", fixed = TRUE)
+  # remove file extensions and keep filename
+  names <- unlist(lapply(files, function(x) { y <- strsplit(x[1], '/', fixed = TRUE)[[1]]; y <- y[length(y)]; y}))
+  names
+}
 #' Get graph name for list of graphs
 #'
 #' @export
@@ -418,15 +463,18 @@ GetDnsToSurrogateArrayMap <- function(d, p)
 #' @param filename of the result data
 GetIcnUnicastEmResults<- function(filename)
 {
-  uc <- c() #' unicast capacity
+  c <- c() #' unicast capacity
   t <- c() #' total ingress demand
-  load(filename)
+  loaded <- ""
+  while(loaded != 'icn.uc')
+    loaded <- tryCatch(load(filename), error = function(e){return("")})
+
   for(i in 1:length(icn.uc[[1]]['added',]))
   {
     t[i] <- sum(icn.uc[[1]]['total',][[i]])
-    uc[i] <- sum(unlist(icn.uc[[1]]['added',][[i]]))
+    c[i] <- sum(unlist(icn.uc[[1]]['added',][[i]]))
   }
-  cbind(uc = uc, t = t)
+  cbind(c = c, t = t, r = c/t)
 }
 #' load Edge Matrix (eM) for the ICN results data of multicast
 #'
@@ -434,15 +482,18 @@ GetIcnUnicastEmResults<- function(filename)
 #' @param filename of the result data
 GetIcnMulticastEmResults <- function(filename)
 {
-  mc <- c() #' unicast capacity
+  c <- c() #' unicast capacity
   t <- c() #' total ingress demand
-  load(filename)
+  loaded <- ""
+  while(loaded != 'icn.mc')
+    loaded <- tryCatch(load(filename), error = function(e){return("")})
+
   for(i in 1:length(icn.mc[[1]]['added',]))
   {
     t[i] <- sum(icn.mc[[1]]['total',][[i]])
-    mc[i] <-sum(unlist(icn.mc[[1]]['added',][[i]]))
+    c[i] <-sum(unlist(icn.mc[[1]]['added',][[i]]))
   }
-  cbind(mc = mc, t = t)
+  cbind(c = c, t = t, r = c/t)
 }
 #' load Edge Matrix (eM) for the IP results data
 #'
@@ -452,13 +503,16 @@ GetIpEmResults<- function(filename)
 {
   c <- c() #' capacity
   t <- c() #' total ingress demand
-  load(filename)
+  loaded <- ""
+  while(loaded != 'ip')
+    loaded <- tryCatch(load(filename), error = function(e){return("")})
+
   for(i in 1:length(ip[[1]]['eM',]))
   {
     t[i] <- sum(ip[[1]]['total',][[i]])
     c[i] <- sum(unlist(ip[[1]]['added',][[i]]))
   }
-  cbind(c = c, t = t)
+  cbind(c = c, t = t, r = c/t)
 }
 #' load the paths of the ICN simulation results for unicast
 #'
@@ -466,10 +520,30 @@ GetIpEmResults<- function(filename)
 #' @param filename of the results data
 GetIcnUnicastPathLengthResults <- function(filename)
 {
-  load(filename)
+  loaded <- ""
+  while(loaded != 'icn.uc')
+    loaded <- tryCatch(load(filename), error = function(e){return("")})
+
   l <- unlist(icn.uc[[1]]['trees',])
   l
 }
+#' load the paths of the ICN simulation results for unicast
+#'
+#' @export
+#' @param filename of the results data
+GetIcnUnicastPathLengthMeanResults <- function(filename)
+{
+  loaded <- ""
+  l <- c()
+  while(loaded != 'icn.uc')
+    loaded <- tryCatch(load(filename), error = function(e){return("")})
+
+  for(i in 1:length(icn.uc[[1]]['trees',]))
+  {
+    l[i] <- mean(icn.uc[[1]]['trees',][[i]])
+  }
+}
+
 #' load the paths of the ICN simulation results for unicast
 #'
 #' @export
@@ -479,7 +553,10 @@ GetIcnUnicastPathLengthEcdfResults <- function(filename)
 {
   l <- c()
   e <- c()
-  load(filename)
+  loaded <- ""
+  while(loaded != 'icn.uc')
+    loaded <- tryCatch(load(filename), error = function(e){return("")})
+
   l <- stats::ecdf(unlist(icn.uc[[1]]['trees',]))
   bins <- length(stats::knots(l))
   for(a in stats::knots(l))
@@ -494,7 +571,10 @@ GetIcnUnicastPathLengthEcdfResults <- function(filename)
 #' @param filename of the results data
 GetIpPathLengthResults <- function(filename)
 {
-  load(filename)
+  loaded <- ""
+  while(loaded != 'ip')
+    loaded <- tryCatch(load(filename), error = function(e){return("")})
+
   l <- unlist(ip[[1]]['trees',])
   l
 }
@@ -506,7 +586,10 @@ GetIpPathLengthEcdfResults <- function(filename)
 {
   l <- c()
   e <- c()
-  load(filename)
+  loaded <- ""
+  while(loaded != 'ip')
+    loaded <- tryCatch(load(filename), error = function(e){return("")})
+
   l <- stats::ecdf(unlist(ip[[1]]['trees',]))
   bins <- length(stats::knots(l))
   for(a in stats::knots(l))
@@ -526,7 +609,10 @@ GetStorageResults <- function(filename)
   c <- c()
   nc <- c()
   t <- c()
-  load(filename)
+  loaded <- ""
+  while(loaded != 'cc')
+    loaded <- tryCatch(load(filename), error = function(e){return("")})
+
   cc$ocfg <- NULL
   cc$ecfg <- NULL
   ps <- cc[[1]]
